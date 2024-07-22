@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import io from 'socket.io-client';
-import axios from 'axios'; // Asegúrate de instalar axios
+import axios from 'axios';
 
 const TerminalComponent = () => {
     const [socket, setSocket] = useState(null);
     const [inputValue, setInputValue] = useState('');
-    const [output, setOutput] = useState([]);
+    const [output, setOutput] = useState('');
     const [lexicalAnalysis, setLexicalAnalysis] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(true); // Modal abierto por defecto
     const [sshConfig, setSshConfig] = useState({
@@ -30,7 +30,7 @@ const TerminalComponent = () => {
 
         socketInstance.on('output', (data) => {
             const { message, isError } = data;
-            setOutput((prevOutput) => [...prevOutput, message]);
+            setOutput((prevOutput) => `${prevOutput}\n${message}`); // Acumular la salida anterior con el nuevo mensaje
             analyzeLexically(inputValue, isError, message);
         });
 
@@ -158,7 +158,7 @@ const TerminalComponent = () => {
                     </div>
                 </div>
             )}
-            
+
             <div className="flex-1 flex">
                 <div className="w-1/4 p-4 bg-gray-800 text-white">
                     <h2 className="text-lg font-bold mb-4">Comandos personalizados</h2>
@@ -172,11 +172,9 @@ const TerminalComponent = () => {
                 </div>
                 <div className="flex-1 flex flex-col h-full">
                     <div className="flex-1 overflow-y-auto p-4 bg-black text-white">
-                        <textarea
-                            className="w-full h-full bg-black text-white border-0 focus:outline-none resize-none"
-                            value={output.join('\n')}
-                            readOnly
-                        />
+                        <pre className="w-full h-full bg-black text-white border-0 focus:outline-none resize-none">
+                            {output}
+                        </pre>
                     </div>
                     <div className="input-container p-4 bg-black flex">
                         <input
@@ -222,7 +220,7 @@ const TerminalComponent = () => {
                                     {item.type === 'Identificador' ? item.input : '-'}
                                 </td>
                                 <td className="border px-4 py-2">
-                                    {item.type === 'Error' ? '❌' : '✔️'}
+                                    {item.error ? '❌' : '✔️'}
                                 </td>
                             </tr>
                         ))}
